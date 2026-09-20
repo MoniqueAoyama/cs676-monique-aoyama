@@ -99,11 +99,21 @@ def gradient(X_design, y, beta):
     # │ "learns" is doing exactly this with a different L.
     # └──────────────────────────────────────────────────────────────────────────
     # YOUR CODE HERE — the MSE gradient
-    # Delete the raise below once you have written it.
-    raise NotImplementedError(
-        "Homework: write the MSE gradient. "
-        "See the YOUR TASK box just above for the steps."
-    )
+
+    # Number of observations in the dataset
+    n = X_design.shape[0]
+
+    # Predictions using the current beta values 
+    y_pred = X_design @ beta 
+
+    # Difference between the real and predicted values 
+    residual = y - y_pred 
+
+    # MSE gradient for all coefficients 
+    grad = -(2 / n) * X_design.T @ residual 
+
+    return grad 
+
 
 
 def normal_equation(X_design, y):
@@ -142,11 +152,22 @@ def fit_gradient_descent(X_design, y, lr=LEARNING_RATE, n_iter=N_ITERATIONS):
     # │   - subtract the gradient, do not add it (you are minimising)
     # └──────────────────────────────────────────────────────────────────────────
     # YOUR CODE HERE — the gradient descent loop
-    # Delete the raise below once you have written it.
-    raise NotImplementedError(
-        "Homework: write the gradient descent loop. "
-        "See the YOUR TASK box just above for the steps."
-    )
+
+    # Repeat the gradient descent process 
+    for _ in range(n_iter):
+
+        # Predictions with the current beta values 
+        y_pred = predict(X_design, beta)
+
+        # Calculate and save the current loss 
+        loss = mse(y, y_pred)
+        history.append(loss)
+
+        # Calculate the gradient 
+        grad = gradient(X_design, y, beta)
+
+        # Update beta by moving in the direction that reduces the loss 
+        beta = beta - lr * grad
 
     return beta, history
 
