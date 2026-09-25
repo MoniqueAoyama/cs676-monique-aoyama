@@ -136,10 +136,10 @@ PREPRINT_DOMAINS = {
     "biorxiv.org",
 }
 
-# Penalty for sourced that have not completed peer review. 
+# Penalty for sources that have not completed peer review. 
 PREPRINT_PENALTY = -0.12
 
-# Path terms that suggest structured or intitutional content.
+# Path terms that suggest structured or institutional content.
 POSITIVE_PATH_TERMS = {
     "journals",
     "publications",
@@ -215,7 +215,7 @@ def rule_based_signals(url: str) -> List[Signal]:
         for term in POSITIVE_PATH_TERMS
     )
 
-    # Apply yhe preprint penalty.
+    # Apply the preprint penalty.
     if is_preprint:
         signals.append(
             Signal(
