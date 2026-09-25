@@ -56,6 +56,8 @@ JUDGE_MODEL = "claude-opus-5"
 
 # How much each layer contributes to the final score. These two must sum to 1.0.
 # Tuning this split is one of the easiest wins available to you.
+
+# Weights selected from the MAE tuning experiment. 
 RULE_WEIGHT = 0.2
 LLM_WEIGHT = 0.8
 
@@ -128,18 +130,23 @@ PATH_PENALTIES: Dict[str, float] = {
     "/comments/": -0.12,
 }
 
-# Known platforms that publish preprints rather than peer-reviewed articles. 
+# Known preprint platforms.
 PREPRINT_DOMAINS = {
     "arxiv.org",
     "biorxiv.org",
 }
+
+# Penalty for sourced that have not completed peer review. 
 PREPRINT_PENALTY = -0.12
 
+# Path terms that suggest structured or intitutional content.
 POSITIVE_PATH_TERMS = {
     "journals",
     "publications",
     "fact-sheets"
 }
+
+# Bonus for positive path terms. 
 POSITIVE_PATH_BONUS = 0.10
 
 # Neutral starting point for a URL we know nothing about.
@@ -199,12 +206,16 @@ def rule_based_signals(url: str) -> List[Signal]:
     signals: List[Signal] = []
     parsed = urlparse(url)
     domain = _normalize_domain(url)
+
+    # Check for preprint platforms and positive path terms. 
     is_preprint = domain in PREPRINT_DOMAINS
     path_lower = parsed.path.lower()
     has_positive_path = any(
         term in path_lower
         for term in POSITIVE_PATH_TERMS
     )
+
+    # Apply yhe preprint penalty.
     if is_preprint:
         signals.append(
             Signal(
@@ -213,6 +224,8 @@ def rule_based_signals(url: str) -> List[Signal]:
                  "Preprint platform; articles may not have completed peer review",
         )
     )
+
+    # Apply the positive path bonus. 
     if has_positive_path:
         signals.append(
             Signal(
@@ -249,6 +262,7 @@ def rule_based_signals(url: str) -> List[Signal]:
             signals.append(Signal("path", delta, f"URL path contains '{fragment}'"))
 
     # Signal 5: a DOI in the path implies a registered scholarly work.
+    # Do not give the DOI bonus to known preprint platforms. 
     if not is_preprint and re.search(r"/10\.\d{4,9}/", path):
         signals.append(Signal("doi", 0.10, "URL contains a DOI, suggesting a registered publication"))
 
