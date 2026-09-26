@@ -76,6 +76,39 @@ check(score_band(0.9)[0] == "HIGH", "0.90 -> HIGH")
 check(score_band(0.5)[0] == "MEDIUM", "0.50 -> MEDIUM")
 check(score_band(0.1)[0] == "LOW", "0.10 -> LOW")
 
+# Tests for the Project 1 improvements. 
+print("\nMy tests: Project 1 improvements")
+
+# Check that arXiv is identified as a preprint platform.
+arxiv = score_url(
+    "https://arxiv.org/abs/1706.03762",
+    use_llm=False,
+)
+check(
+    "Preprint platform" in arxiv["explanation"],
+    "arXiv is identified as a preprint platform",
+)
+
+# Check that a positive path term is detected. 
+who = score_url(
+    "https://www.who.int/news-room/fact-sheets/detail/example",
+    use_llm=False,
+)
+check(
+    "structured or institutional content" in who["explanation"],
+    "fact-sheets path receives the positive path signal",
+)
+
+# Check that a preprint does not also receive the DOI bonus. 
+biorxiv = score_url(
+    "https://www.biorxiv.org/content/10.1101/2020.01.01.00001",
+    use_llm=False,
+)
+check(
+    "DOI" not in biorxiv["explanation"],
+    "preprint does not receive the DOI bonus"
+)
+
 print(f"\n{'=' * 60}")
 print(f"  {PASSED} passed, {FAILED} failed")
 print(f"{'=' * 60}\n")
