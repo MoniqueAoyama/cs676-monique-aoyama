@@ -14,4 +14,4 @@ Coursework for CS 676 at Pace University, Fall 2026.
 | --- | --- |
 | [01_lr.py](homework/01_lr.py) | Linear regression with gradient descent |
 | [02_logreg.py](homework/02_logreg.py) | Logistic regression with gradient descent |
-   - `03_cv.py`: K-fold cross validation from scratch
+| [03_cv.py](homework/03_cv.py) | K-fold cross validation from scratch |
