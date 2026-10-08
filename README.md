@@ -6,7 +6,7 @@ Coursework for CS 676 at Pace University, Fall 2026.
 
 | Project | What it does | App |
 | --- | --- | --- |
-| [Project 1: Credibility Scoring](project_1) | Scores how credible a web source is, combining URL rules with an LLM | [Live app](LINK-DO-STREAMLIT) |
+| [Project 1: Credibility Scoring](project_1) | Scores how credible a web source is, combining URL rules with an LLM | [Live app](https://cs676-monique-aoyama-9j6rd52hzrsnbsauwvnyhr.streamlit.app) |
 
 ## Homework
 
