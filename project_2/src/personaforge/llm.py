@@ -139,7 +139,10 @@ This persona was produced by the offline stub, not by a model. Run without
 ## How they speak
 - In whatever the scripted stub happens to return
 """
-
+_DEMO_REVIEW = """SUMMARY: The doctor asked about the symptoms and the patient described them. The doctor wants to run some tests.
+ON_TOPIC: 1
+IN_CHARACTER: yes
+NOTES: This is a canned review from offline mode, run without --offline for a real one."""
 
 @dataclass
 class DemoLLM:
@@ -165,7 +168,8 @@ class DemoLLM:
             words = [w for w in description.split() if w.isalpha()]
             role = words[0].lower() if words else "person"
             return _DEMO_PERSONA.format(name=description[:40].title() or "Demo Persona", role=role)
-
+        if "You are an observer" in system:
+            return _DEMO_REVIEW
         if "stage manager" in system.lower():
             return "Offline mode — I'm a stub. Try: create a persona doctor"
 

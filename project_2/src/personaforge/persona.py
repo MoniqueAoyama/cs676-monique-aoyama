@@ -126,13 +126,16 @@ def load_persona(path: Path) -> PersonaSpec:
     return PersonaSpec.from_markdown(Path(path).read_text(encoding="utf-8"))
 
 
+# Files the app writes in the same folder that are not personas.
+_NOT_PERSONAS = {"conversation.md", "review.md"}
+
+
 def list_personas(directory: Path = DEFAULT_PERSONA_DIR) -> List[PersonaSpec]:
     """Every persona currently saved, sorted by filename. Empty if none yet."""
     directory = Path(directory)
     if not directory.exists():
         return []
-    return [load_persona(p) for p in sorted(directory.glob("*.md"))]
-
+    return [load_persona(p) for p in sorted(directory.glob("*.md")) if p.name not in _NOT_PERSONAS]
 
 def find_persona(name: str, directory: Path = DEFAULT_PERSONA_DIR) -> Optional[PersonaSpec]:
     """

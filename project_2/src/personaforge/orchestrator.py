@@ -26,6 +26,7 @@ from typing import Callable, List, Optional
 from .agent import agent_from_spec
 from .conversation import Conversation, Turn, run_conversation, save_transcript
 from .llm import LLM
+from .observer import review_conversation, review_markdown, save_review
 from .persona import (
     DEFAULT_PERSONA_DIR,
     PersonaSpec,
@@ -113,12 +114,20 @@ class Orchestrator:
             on_start(topic)
         conversation = run_conversation(agents, topic=topic, turns=turns, on_turn=on_turn)
         path = save_transcript(conversation, self.persona_dir, filename="conversation.md")
+        reply = f"{len(conversation.turns)} turns between {' and '.join(s.name for s in specs)}."
+        events = [f"wrote {path}"]
+        # The observer reads the finished conversation once. If it fails, the
+        # conversation is still kept, since it was already saved.
 
-        return Result(
-            reply=f"{len(conversation.turns)} turns between {' and '.join(s.name for s in specs)}.",
-            events=[f"wrote {path}"],
-            conversation=conversation,
-        )
+        try:
+            review = review_conversation(conversation, self.llm)
+            review_path = save_review(review, self.persona_dir)
+            reply = reply + "\n\n" + review_markdown(review)
+            events.append(f"wrote {review_path}")
+        except Exception as exc:  # noqa: BLE001
+            reply = reply + f"\n\n(The observer could not review this conversation: {exc})"
+
+        return Result(reply=reply, events=events, conversation=conversation)
 
     def _chat(self, text: str) -> Result:
         """Nothing matched, so just talk to the user."""

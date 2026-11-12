@@ -73,3 +73,34 @@ def parse_review(answer: str) -> Review:
         notes=fields.get("NOTES", ""),
         raw=answer,
     )
+
+
+
+def review_markdown(review: Review) -> str:
+    """Turn a review into short markdown, for the screen and for review.md."""
+    score = f"{review.on_topic}/5" if review.on_topic is not None else "unknown"
+    if review.in_character is True:
+        character = "yes"
+    elif review.in_character is False:
+        character = "no"
+    else:
+        character = "unknown"
+
+    return (
+        "**Observer review**\n\n"
+        f"- Summary: {review.summary}\n"
+        f"- On topic: {score}\n"
+        f"- In character: {character}\n"
+        f"- Notes: {review.notes}\n"
+    )
+
+
+def save_review(review: Review, directory, filename: str = "review.md"):
+    """Write the review next to the transcript it judged."""
+    from pathlib import Path
+
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / filename
+    path.write_text(review_markdown(review), encoding="utf-8")
+    return path
