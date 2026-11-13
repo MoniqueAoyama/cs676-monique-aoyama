@@ -33,6 +33,7 @@ from .persona import (
     find_persona,
     generate_persona,
     list_personas,
+    random_name,
     save_persona,
 )
 
@@ -70,11 +71,29 @@ class Orchestrator:
         if not description.strip():
             return Result(reply="Tell me what kind of persona — for example, 'create a persona doctor'.")
 
-        spec = generate_persona(description, self.llm)
+        # Each new persona gets a random name that is not used yet.
+        taken_names = [s.name for s in list_personas(self.persona_dir)]
+        spec = generate_persona(description, self.llm, name=random_name(taken_names))
+        events = []
+
+        # Safety net: if the model ignores the name and repeats one that already
+        # exists, the second file would overwrite the first one, so a repeated
+        # name gets the role added to it.
+        taken = {name.lower() for name in taken_names}
+        if spec.name.lower() in taken:
+            old_name = spec.name
+            spec.name = f"{old_name} ({spec.role})"
+            number = 2
+            while spec.name.lower() in taken:
+                spec.name = f"{old_name} ({spec.role} {number})"
+                number += 1
+            events.append(f"renamed to '{spec.name}' because '{old_name}' already exists")
+
         path = save_persona(spec, self.persona_dir)
+        events.append(f"wrote {path}")
         return Result(
             reply=f"Created **{spec.name}** ({spec.role}) — {spec.summary}",
-            events=[f"wrote {path}"],
+            events=events,
         )
 
     def _list_personas(self) -> Result:
@@ -116,6 +135,8 @@ class Orchestrator:
         path = save_transcript(conversation, self.persona_dir, filename="conversation.md")
         reply = f"{len(conversation.turns)} turns between {' and '.join(s.name for s in specs)}."
         events = [f"wrote {path}"]
+        if conversation.error:
+            reply = reply + f"\n\nThe conversation stopped early: {conversation.error}"
         # The observer reads the finished conversation once. If it fails, the
         # conversation is still kept, since it was already saved.
 

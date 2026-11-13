@@ -164,7 +164,8 @@ class DemoLLM:
 
         # The persona-author prompt is the only one that asks for frontmatter.
         if "role: <one lowercase word" in system:
-            description = request.replace("Write a persona for:", "").strip()
+            # Only the first line is the description; a second line may ask for a name.
+            description = request.replace("Write a persona for:", "").strip().split("\n")[0]
             words = [w for w in description.split() if w.isalpha()]
             role = words[0].lower() if words else "person"
             return _DEMO_PERSONA.format(name=description[:40].title() or "Demo Persona", role=role)

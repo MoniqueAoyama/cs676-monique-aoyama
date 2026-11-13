@@ -25,6 +25,7 @@ three keys above. That is intentional — see YOUR TASK at the bottom.
 
 from __future__ import annotations
 
+import random
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -192,17 +193,46 @@ Write a specific individual, not a type. Give them a quirk. Avoid stereotypes,
 and do not make them a spokesperson for a demographic."""
 
 
-def generate_persona(description: str, llm: LLM) -> PersonaSpec:
+# A small pool of names for new personas. Left alone, the model picked
+# "Marcus Chen" for almost every character, so the code picks the name
+# and the model writes everything else.
+_FIRST_NAMES = [
+    "Ana", "Ben", "Carla", "David", "Elena", "Farid", "Grace", "Hiro", "Isabel", "Jamal",
+    "Keiko", "Luis", "Maya", "Nikos", "Olivia", "Priya", "Rafael", "Sofia", "Tom", "Yara",
+]
+_LAST_NAMES = [
+    "Alvarez", "Brennan", "Costa", "Dubois", "Evans", "Fischer", "Gupta", "Haddad", "Ito", "Johnson",
+    "Kowalski", "Lopez", "Moreau", "Nakamura", "Okafor", "Petrov", "Rossi", "Silva", "Turner", "Weber",
+]
+
+
+def random_name(taken: Optional[List[str]] = None) -> str:
+    """Pick a random full name that is not already used by another persona."""
+    used = {name.lower() for name in (taken or [])}
+    name = ""
+    for _ in range(100):
+        name = f"{random.choice(_FIRST_NAMES)} {random.choice(_LAST_NAMES)}"
+        if name.lower() not in used:
+            break
+    return name
+
+
+def generate_persona(description: str, llm: LLM, name: Optional[str] = None) -> PersonaSpec:
     """
     Ask the model to author a persona from a one-line description.
 
     :param description: e.g. "a patient with type 2 diabetes who distrusts doctors"
     :param llm:         any LLM implementation (real or scripted)
+    :param name:        optional full name the model should use for the character
     :return:            the parsed PersonaSpec — not yet saved to disk
     """
+    request = f"Write a persona for: {description}"
+    if name:
+        request += f"\nUse this name for the character: {name}"
+
     markdown = llm.complete(
         system=_AUTHOR_SYSTEM,
-        messages=[{"role": "user", "content": f"Write a persona for: {description}"}],
+        messages=[{"role": "user", "content": request}],
         max_tokens=2048,
     )
 

@@ -30,12 +30,15 @@ class Conversation:
     topic: str
     participants: List[str]
     turns: List[Turn] = field(default_factory=list)
+    error: Optional[str] = None  # set when a reply failed and the conversation stopped early
 
     def transcript(self) -> str:
         """Render as plain text, suitable for saving or printing."""
         header = f"# Conversation: {self.topic}\n\nParticipants: {', '.join(self.participants)}\n\n"
-        return header + "\n\n".join(f"**{t.speaker}:** {t.text}" for t in self.turns)
-
+        text = header + "\n\n".join(f"**{t.speaker}:** {t.text}" for t in self.turns)
+        if self.error:
+            text += f"\n\n*(Conversation stopped early: {self.error})*"
+        return text
 
 def run_conversation(
     agents: List[PersonaAgent],
@@ -63,7 +66,24 @@ def run_conversation(
 
     for i in range(turns):
         speaker = agents[i % len(agents)]
-        text = speaker.respond(history)
+
+        # If a reply fails (for example the API goes down), the conversation
+        # stops here but keeps every line said so far, so nothing is lost.
+        # Near the end, a short note tells the speaker how many lines are left,
+        # so the characters wrap up instead of being cut off mid-discussion.
+        # The note is only shown to the model, not saved in the transcript.
+        lines_left = turns - i
+        prompt = history
+        if lines_left == 2:
+            prompt = history + [Turn(speaker="Scene", text="(Two lines left: start wrapping up the conversation.)")]
+        elif lines_left == 1:
+            prompt = history + [Turn(speaker="Scene", text="(This is the last line: close the conversation naturally.)")]
+
+        try:
+            text = speaker.respond(prompt)
+        except Exception as exc:  # noqa: BLE001
+            conversation.error = f"{speaker.name} could not reply ({type(exc).__name__}: {exc})"
+            break
         turn = Turn(speaker=speaker.name, text=text)
 
         history.append(turn)
