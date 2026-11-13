@@ -7,7 +7,7 @@ Coursework for CS 676 at Pace University, Fall 2026.
 | Project | What it does | App |
 | --- | --- | --- |
 | [Project 1: Credibility Scoring](project_1) | Scores how credible a web source is, combining URL rules with an LLM | [Live app](https://cs676-monique-aoyama-9j6rd52hzrsnbsauwvnyhr.streamlit.app) |
-
+| [Project 2: PersonaForge + Observer](project_2) | Two AI characters talk, then an observer agent reviews the conversation (summary, on-topic score, in-character check). [Report](project_2/REPORT.md) | Terminal app |
 ## Homework
 
 | File | Topic |
